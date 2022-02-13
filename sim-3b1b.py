@@ -30,7 +30,7 @@ LONG_WORD_LIST_FILE = os.path.join("data", GAME, "valid.txt")
 WORD_FREQ_FILE = os.path.join("data", GAME, "wordle_words_freqs_full.txt")
 WORD_FREQ_MAP_FILE = os.path.join("data", GAME, "freq_map.json")
 SECOND_GUESS_MAP_FILE = os.path.join("data", GAME, "second_guess_map.json")
-PATTERN_MATRIX_FILE = os.path.join("data", GAME, "pattern_matrix.npy")
+PATTERN_MATRIX_FILE = os.path.join("data", GAME, "pattern_matrix.npy") # this is zipped bc github complained about the size
 ENT_SCORE_PAIRS_FILE = os.path.join("data", GAME, "ent_score_pairs.json")
 
 # To store the large grid of patterns at run time
