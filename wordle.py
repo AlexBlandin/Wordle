@@ -96,7 +96,7 @@ if __name__ == "__main__":
     init()
   except:
     pass
-  if True: # test colouring is correct (it is)
+  if False: # test colouring is correct (it is)
     for w in "abide erase steal crepe ester".split():
       print(colour("speed", w)[0], "when", w)
   main()
