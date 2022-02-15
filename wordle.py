@@ -7,7 +7,7 @@ def readlines(fp: str, encoding="utf8"):
   return list(map(str.upper, map(str.strip, Path(fp).read_text(encoding).splitlines())))
 
 def colour(guess: str, word: str):
-  """Colours a guess for the given word, returns (tty, tweetable) versions"""
+  """Colours a guess for the given word, returns (terminal, tweetable) versions"""
   plain, green, yellow = "\033[0m", "\033[0;32m", "\033[0;33m"
   letters = [f"{green}{c}" if c == word[i] else f"{plain}{c}" for i,c in enumerate(guess)]+[plain]
   colours = ["🟩" if c == word[i] else "⬛" for i,c in enumerate(guess)]
@@ -98,5 +98,5 @@ if __name__ == "__main__":
     pass
   if False: # test colouring is correct (it is)
     for w in "abide erase steal crepe ester".split():
-      print(colour("speed", w)[0], "when", w)
+      print(*colour("speed", w), "when", w)
   main()
