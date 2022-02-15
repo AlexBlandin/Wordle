@@ -1,5 +1,7 @@
-from pathlib import Path
 from random import choice
+from pathlib import Path
+from sys import platform
+from os import system
 
 def readlines(fp: str, encoding="utf8"):
   return list(map(str.upper, map(str.strip, Path(fp).read_text(encoding).splitlines())))
@@ -24,8 +26,6 @@ def wordle(kind: str, words: list[str], valid: set[str], N=6):
   """Generic Text-Mode Wordle, say what kind, the possible words, the valid inputs, and how many guesses they get"""
   day, word = choice(list(enumerate(words)))
   
-  from os import system
-  from sys import platform
   def display(turn):
     system("clear" if platform != "nt" else "cls")
     print("Pridel:", kind)
