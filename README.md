@@ -21,10 +21,11 @@ point of the game, in my opinion.
 ## Requirements
 
 - Python 3.7 or later
-- `wordle.py` uses `colorama` for ensuring terminal output is coloured, such as
-  on Windows. That it's "color" rather than "colour" is ironic, I know.
-  - If it isn't found, the `ModuleNotFoundError` is suppressed and it just
-    carries on assuming your terminal handles ANSI/VT100 colour codes. That's on
-    you, I'm afraid.
-- `sim-3b1b.py` uses `numpy`, `scipy`, `tqdm`, and `rich` (based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py))
+- [`poetry install`](https://python-poetry.org/)
+  - `wordle.py` uses `colorama` for ensuring terminal output is coloured, such as
+    on Windows. That it's "color" rather than "colour" is ironic, I know.
+    - If it isn't found, the `ModuleNotFoundError` is suppressed and it just
+      carries on assuming your terminal handles ANSI/VT100 colour codes. That's on
+      you, I'm afraid.
+  - `sim-3b1b.py` uses `numpy`, `scipy`, `tqdm`, and `rich` (based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py))
 - `primel.py` has no dependencies
