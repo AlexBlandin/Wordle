@@ -57,17 +57,22 @@ def main():
   """Wordle and Primel (prime number version of Wordle)
   Just generates random picks on tap, not the daily one, so you can practice
   (Also I might do some extras if I want, such as the prototype "British" mode)"""
-  games = {"wordle": set("classic wordle"), "primel": set("primel primes"), "britle": set("british britle")}
+  games = {"wordle": set("classic wordle"), "primel": set("primel primes"), "britle": set("british britle"), "nordle": set("nyt nordle")}
   games = {k: g.difference(*[g_ for g_ in games.values() if g_ != g]) for k, g in games.items()}
   print("Which mode would you like to play?", *games)
   # we test whether it contains any of the unique letters from each option, which should mean it tolerates some degree of error
   
-  game = set(input("Classic Wordle, Primes or British Wordle? ").lower())
+  game = set(input("Classic Wordle, Primes, NYT Wordle, or British Wordle? ").lower())
   if len(game & games["wordle"]):
     words = readlines("data/wordle/words.txt")
     valid = set(readlines("data/wordle/valid.txt"))
     valid |= set(words)
     wordle("Wordle mode", words, valid)
+  elif len(game & games["nordle"]):
+    words = readlines("data/nordle/words.txt")
+    valid = set(readlines("data/nordle/valid.txt"))
+    valid |= set(words)
+    wordle("Nordle mode", words, valid)
   elif len(game & games["primel"]):
     
     def ctz(v):
