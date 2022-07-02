@@ -54,9 +54,10 @@ def wordle(kind: str, words: list[str], valid: set[str], N = 6):
     print(cs)
 
 def main():
-  """Wordle and Primel (prime number version of Wordle)
-  Just generates random picks on tap, not the daily one, so you can practice
-  (Also I might do some extras if I want, such as the prototype "British" mode)"""
+  """Pridel
+  Generates random Wordle picks, not the daily one, so you can practice. Choose the Classic and NYT wordlist.
+  Has some extras, such as the prototype "British" mode, or the Prime number variant Primel (hence the name)!
+  """
   games = {"wordle": set("classic wordle"), "primel": set("primel primes"), "britle": set("british britle"), "nordle": set("nyt nordle")}
   games = {k: g.difference(*[g_ for g_ in games.values() if g_ != g]) for k, g in games.items()}
   print("Which mode would you like to play?", *games)
@@ -113,4 +114,6 @@ if __name__ == "__main__":
   if False: # test colouring is correct (it is)
     for w in "abide erase steal crepe ester".split():
       print(*colour("speed", w), "when", w)
+  print(main.__doc__)
+  print()
   main()
