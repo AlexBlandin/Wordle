@@ -1,5 +1,4 @@
 from tqdm import tqdm as ProgressDisplay
-from scipy.stats import entropy
 import numpy as np
 import random
 import math
@@ -258,6 +257,53 @@ def get_pattern_distributions(allowed_words, possible_words, weights):
   for j, prob in enumerate(weights):
     distributions[n_range, pattern_matrix[:, j]] += prob
   return distributions
+
+def entr(x):
+    if np.isnan(x):
+        return x
+    elif x > 0:
+        return -x * log(x)
+    elif x == 0:
+        return 0
+    else:
+        return -math.inf
+
+def rel_entr(x, y):
+    if np.isnan(x) or np.isnan(y):
+        return math.nan
+    elif x > 0 and y > 0:
+        return x * log(x / y)
+    elif x == 0 and y >= 0:
+        return 0
+    else:
+        return math.inf
+
+def entropy(pk, qk = None, base = None, axis = 0):
+    """
+    Calculate the entropy of a distribution for given probability values.
+    If only probabilities `pk` are given, the entropy is calculated as
+    ``S = -sum(pk * log(pk), axis=axis)``.
+    If `qk` is not None, then compute the Kullback-Leibler divergence
+    ``S = sum(pk * log(pk / qk), axis=axis)``.
+    This routine will normalize `pk` and `qk` if they don't sum to 1.
+    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html
+    """
+    if base is not None and base <= 0:
+        raise ValueError("`base` must be a positive number or `None`.")
+
+    pk = np.asarray(pk)
+    pk = 1.0*pk / np.sum(pk, axis=axis, keepdims=True)
+    if qk is None:
+        vec = entr(pk)
+    else:
+        qk = np.asarray(qk)
+        pk, qk = np.broadcast_arrays(pk, qk)
+        qk = 1.0*qk / np.sum(qk, axis=axis, keepdims=True)
+        vec = rel_entr(pk, qk)
+    S = np.sum(vec, axis=axis)
+    if base is not None:
+        S /= np.log(base)
+    return S
 
 def entropy_of_distributions(distributions, atol = 1e-12):
   axis = len(distributions.shape) - 1
