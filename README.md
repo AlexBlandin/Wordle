@@ -28,6 +28,6 @@ point of the game, in my opinion.
     on Windows.
     - If it isn't found, the `ModuleNotFoundError` is suppressed and it just
       carries on assuming your terminal handles ANSI/VT100 colour codes.
-  - `sim-3b1b.py` uses `numpy`, `scipy`, `tqdm`, and `rich` (based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py))
+  - `sim-3b1b.py` uses `numpy`, `tqdm`, and `rich` (based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py))
   	- These are optional and installed with `poetry install --all-extras`
 - `primel.py` has no dependencies
