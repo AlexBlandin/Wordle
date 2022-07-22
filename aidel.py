@@ -51,7 +51,8 @@ def stat():
   column = {i:sorted_dict(d, reverse=True) for i,d in column.items()}
   print(len(ws))
   print(letter)
-  print(column)
+  for col, letters in column.items():
+    print(f"{col}: {letters}")
 
 def guess(ws=ws):
   if len(ws) > 10:
@@ -91,4 +92,7 @@ def code(*pairs):
           has(n,i)
 
 if __name__=="__main__":
-  print(*sample(words, 10))
+  while 1:
+    pair = input("Guess and colours[gyn]: ")
+    code(pair)
+    stat()
