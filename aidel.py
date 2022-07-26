@@ -1,11 +1,12 @@
 from pathlib import Path
 from random import sample
+from functools import partial
 from operator import itemgetter
 from collections import defaultdict
 
 def sorted_dict(d, key=itemgetter(1), reverse=False): return dict(sorted(d.items(), key=key, reverse=reverse))
-
-words = Path("data/nordle/words.txt").read_text().splitlines()
+data = Path(__file__).parent/"data"
+words = (data/"nordle"/"words.txt").read_text().splitlines()
 ws = set(words) # working set
 
 def inverse(): return {c: set() for c in "abcdefghijklmnopqrstuvwxyz"}
@@ -56,7 +57,7 @@ def stat():
 
 def guess(ws=ws):
   if len(ws) > 10:
-    print(*sample(ws, 10))
+    print(*sample(sorted(ws), 10))
   else:
     print(*ws)
 
@@ -81,18 +82,20 @@ def at(ltr: str, col: int):
       ws.difference_update(s)
 
 def code(*pairs):
-  for guess, code in map(str.split, pairs):
-    for i,(n,c) in enumerate(zip(guess, code)):
-      match c:
+  two_words = partial(str.split, maxsplit = 1)
+  for guess, code in map(two_words, pairs):
+    for col, (letter, colour) in enumerate(zip(guess, code)):
+      match colour:
         case "n":
-          no(n)
+          no(letter)
         case "g":
-          at(n,i)
+          at(letter, col)
         case "y":
-          has(n,i)
+          has(letter, col)
 
 if __name__=="__main__":
   while 1:
     pair = input("Guess and colours[gyn]: ")
     code(pair)
     stat()
+    guess()

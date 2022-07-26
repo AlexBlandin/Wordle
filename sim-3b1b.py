@@ -1,5 +1,6 @@
 from tqdm import tqdm as ProgressDisplay
 import numpy as np
+from scipy.stats import entropy
 import random
 import math
 import json
@@ -16,7 +17,7 @@ logging.basicConfig(level = logging.WARNING, format = FORMAT, datefmt = "[%X]", 
 log = logging.getLogger("sim")
 log.setLevel("DEBUG")
 
-GAME = input("wordle or britle? ") # wordle, primel, britle
+GAME = input("wordle, britle, primel, or nordle? ") # wordle, primel, britle, nordle
 
 MISS = np.uint8(0)
 MISPLACED = np.uint8(1)
@@ -258,53 +259,6 @@ def get_pattern_distributions(allowed_words, possible_words, weights):
     distributions[n_range, pattern_matrix[:, j]] += prob
   return distributions
 
-def entr(x):
-    if np.isnan(x):
-        return x
-    elif x > 0:
-        return -x * log(x)
-    elif x == 0:
-        return 0
-    else:
-        return -math.inf
-
-def rel_entr(x, y):
-    if np.isnan(x) or np.isnan(y):
-        return math.nan
-    elif x > 0 and y > 0:
-        return x * log(x / y)
-    elif x == 0 and y >= 0:
-        return 0
-    else:
-        return math.inf
-
-def entropy(pk, qk = None, base = None, axis = 0):
-    """
-    Calculate the entropy of a distribution for given probability values.
-    If only probabilities `pk` are given, the entropy is calculated as
-    ``S = -sum(pk * log(pk), axis=axis)``.
-    If `qk` is not None, then compute the Kullback-Leibler divergence
-    ``S = sum(pk * log(pk / qk), axis=axis)``.
-    This routine will normalize `pk` and `qk` if they don't sum to 1.
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html
-    """
-    if base is not None and base <= 0:
-        raise ValueError("`base` must be a positive number or `None`.")
-
-    pk = np.asarray(pk)
-    pk = 1.0*pk / np.sum(pk, axis=axis, keepdims=True)
-    if qk is None:
-        vec = entr(pk)
-    else:
-        qk = np.asarray(qk)
-        pk, qk = np.broadcast_arrays(pk, qk)
-        qk = 1.0*qk / np.sum(qk, axis=axis, keepdims=True)
-        vec = rel_entr(pk, qk)
-    S = np.sum(vec, axis=axis)
-    if base is not None:
-        S /= np.log(base)
-    return S
-
 def entropy_of_distributions(distributions, atol = 1e-12):
   axis = len(distributions.shape) - 1
   return entropy(distributions, base = 2, axis = axis)
@@ -471,7 +425,7 @@ def get_score_lower_bounds(allowed_words, possible_words):
   possible score for each word in allowed_words
   """
   bucket_counts = get_bucket_counts(allowed_words, possible_words)
-  N = len(possible_words)
+  N = max(len(possible_words), 1)
   # Probabilities of getting it in 1
   p1s = np.array([w in possible_words for w in allowed_words]) / N
   # Probabilities of getting it in 2
