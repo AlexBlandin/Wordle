@@ -1,8 +1,8 @@
-from pathlib import Path
-from random import sample
+from collections import defaultdict
 from functools import partial
 from operator import itemgetter
-from collections import defaultdict
+from pathlib import Path
+from random import sample
 
 def sorted_dict(d, key = itemgetter(1), reverse = False):
   return dict(sorted(d.items(), key = key, reverse = reverse))

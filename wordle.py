@@ -1,5 +1,5 @@
-from random import choice
 from pathlib import Path
+from random import choice
 from sys import platform
 from os import system
 
@@ -58,7 +58,12 @@ def main():
   Generates random Wordle picks, not the daily one, so you can practice. Choose the Classic and NYT wordlist.
   Has some extras, such as the prototype "British" mode, or the Prime number variant Primel (hence the name)!
   """
-  games = {"wordle": set("classic wordle"), "primel": set("primel primes"), "britle": set("british britle"), "nordle": set("nyt nordle")}
+  games = {
+    "wordle": set("classic wordle"),
+    "primel": set("primel primes"),
+    "britle": set("british britle"),
+    "nordle": set("nyt nordle")
+  }
   games = {k: g.difference(*[g_ for g_ in games.values() if g_ != g]) for k, g in games.items()}
   print("Which mode would you like to play?", *games)
   # we test whether it contains any of the unique letters from each option, which should mean it tolerates some degree of error

@@ -1,7 +1,7 @@
-from pprint import pprint as pp
-from random import sample
-from operator import itemgetter
 from collections import defaultdict
+from operator import itemgetter
+from random import sample
+from pprint import pprint as pp
 
 def sorted_dict(d, key=itemgetter(1), reverse=False): return dict(sorted(d.items(), key=key, reverse=reverse))
 def ctz(v): return (v & -v).bit_length() - 1
