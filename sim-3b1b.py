@@ -3,7 +3,6 @@ import logging
 import random
 import math
 import json
-import os
 
 from rich.logging import RichHandler
 from scipy.stats import entropy
@@ -24,15 +23,14 @@ MISS = np.uint8(0)
 MISPLACED = np.uint8(1)
 EXACT = np.uint8(2)
 
-SHORT_WORD_LIST_FILE = os.path.join("data", GAME, "words.txt")
-LONG_WORD_LIST_FILE = os.path.join("data", GAME, "valid.txt")
-WORD_FREQ_FILE = os.path.join("data", GAME, "wordle_words_freqs_full.txt")
-WORD_FREQ_MAP_FILE = os.path.join("data", GAME, "freq_map.json")
-SECOND_GUESS_MAP_FILE = os.path.join("data", GAME, "second_guess_map.json")
-PATTERN_MATRIX_FILE = os.path.join(
-  "data", GAME, "pattern_matrix.npy"
-) # this is zipped bc github complained about the size
-ENT_SCORE_PAIRS_FILE = os.path.join("data", GAME, "ent_score_pairs.json")
+CWD = Path(__file__).parent
+SHORT_WORD_LIST_FILE = CWD / "data" / GAME / "words.txt"
+LONG_WORD_LIST_FILE = CWD / "data" / GAME / "valid.txt"
+WORD_FREQ_FILE = CWD / "data" / GAME / "wordle_words_freqs_full.txt"
+WORD_FREQ_MAP_FILE = CWD / "data" / GAME / "freq_map.json"
+SECOND_GUESS_MAP_FILE = CWD / "data" / GAME / "second_guess_map.json"
+PATTERN_MATRIX_FILE = CWD / "data" / GAME / "pattern_matrix.npy" # this is zipped bc github complained about the size
+ENT_SCORE_PAIRS_FILE = CWD / "data" / GAME / "ent_score_pairs.json"
 
 # To store the large grid of patterns at run time
 PATTERN_GRID_DATA = dict()
@@ -42,6 +40,14 @@ def safe_log2(x):
 
 # Reading from files
 
+def load_json(path: Path):
+  with open(path) as fp:
+    return json.load(fp)
+
+def dump_json(d: dict, path: Path):
+  with open(path, "w") as fp:
+    json.dump(d, fp)
+
 def get_word_list(short = False):
   result = []
   file = SHORT_WORD_LIST_FILE if short else LONG_WORD_LIST_FILE
@@ -50,20 +56,17 @@ def get_word_list(short = False):
   return result
 
 def get_word_frequencies(regenerate = False):
-  if os.path.exists(WORD_FREQ_MAP_FILE) or regenerate:
-    with open(WORD_FREQ_MAP_FILE) as fp:
-      result = json.load(fp)
-    return result
+  if WORD_FREQ_MAP_FILE.exists() or regenerate:
+    return load_json(WORD_FREQ_MAP_FILE)
   # Otherwise, regenerate
   freq_map = dict()
   with open(WORD_FREQ_FILE) as fp:
     for line in fp.readlines():
-      pieces = line.split(' ')
+      pieces = line.split()
       word = pieces[0]
       freqs = [float(piece.strip()) for piece in pieces[1:]]
       freq_map[word] = np.mean(freqs[-5:])
-  with open(WORD_FREQ_MAP_FILE, 'w') as fp:
-    json.dump(freq_map, fp)
+  dump_json(freq_map, WORD_FREQ_MAP_FILE)
   return freq_map
 
 def sigmoid(z):
@@ -178,18 +181,18 @@ def generate_full_pattern_matrix():
 
 def get_pattern_matrix(words1, words2):
   if not PATTERN_GRID_DATA:
-    if not os.path.exists(PATTERN_MATRIX_FILE):
+    if not PATTERN_MATRIX_FILE.exists():
       # log.info("\n".join([ # TODO: add back in logging
       #   "Generating pattern matrix. This takes a minute, but",
       #   "the result will be saved to file so that it only",
       #   "needs to be computed once.",
       # ]))
       generate_full_pattern_matrix()
-    PATTERN_GRID_DATA['grid'] = np.load(PATTERN_MATRIX_FILE)
-    PATTERN_GRID_DATA['words_to_index'] = dict(zip(get_word_list(), it.count()))
+    PATTERN_GRID_DATA["grid"] = np.load(PATTERN_MATRIX_FILE)
+    PATTERN_GRID_DATA["words_to_index"] = dict(zip(get_word_list(), it.count()))
   
-  full_grid = PATTERN_GRID_DATA['grid']
-  words_to_index = PATTERN_GRID_DATA['words_to_index']
+  full_grid = PATTERN_GRID_DATA["grid"]
+  words_to_index = PATTERN_GRID_DATA["words_to_index"]
   
   indices1 = [words_to_index[w] for w in words1]
   indices2 = [words_to_index[w] for w in words2]
@@ -197,7 +200,7 @@ def get_pattern_matrix(words1, words2):
 
 def get_pattern(guess, answer):
   if PATTERN_GRID_DATA:
-    saved_words = PATTERN_GRID_DATA['words_to_index']
+    saved_words = PATTERN_GRID_DATA["words_to_index"]
     if guess in saved_words and answer in saved_words:
       return get_pattern_matrix([guess], [answer])[0, 0]
   return generate_pattern_matrix([guess], [answer])[0, 0]
@@ -511,9 +514,8 @@ def get_two_step_score_lower_bound(first_guess, allowed_words, possible_words):
 
 def find_top_scorers(n_top_candidates = 100, hard_mode = False, quiet = True):
   # Run find_best_two_step_entropy first
-  file = os.path.join("data", GAME, "best_double_entropies.json")
-  with open(file) as fp:
-    double_ents = json.load(fp)
+  file = CWD / "data" / GAME / "best_double_entropies.json"
+  double_ents = load_json(file)
   
   answers = get_word_list(short = True)
   priors = get_true_wordle_prior()
@@ -532,13 +534,9 @@ def find_top_scorers(n_top_candidates = 100, hard_mode = False, quiet = True):
   top_scorers = sorted(list(guess_to_score.keys()), key = lambda w: guess_to_score[w])
   result = [[w, guess_to_score[w], guess_to_dist[w]] for w in top_scorers]
   
-  file = os.path.join(
-    "data",
-    GAME,
-    "best_scores" + ("_hard_mode" if hard_mode else "") + ".json",
-  )
-  with open(file, 'w') as fp:
-    json.dump(result, fp)
+  file = CWD / "data" / GAME / f"best_scores{'_hard_mode' if hard_mode else ''}.json"
+  
+  dump_json(result, file)
   
   return result
 
@@ -552,9 +550,8 @@ def find_best_two_step_entropy():
   top_candidates = np.array(words)[sorted_indices[:-250:-1]]
   top_ents = ents[sorted_indices[:-250:-1]]
   
-  ent_file = os.path.join("data", GAME, "best_entropies.json")
-  with open(ent_file, 'w') as fp:
-    json.dump([[tc, te] for tc, te in zip(top_candidates, top_ents)], fp)
+  ent_file = CWD / "data" / GAME / "best_entropies.json"
+  dump_json([[tc, te] for tc, te in zip(top_candidates, top_ents)], ent_file)
   
   ents2 = get_average_second_step_entropies(
     top_candidates,
@@ -568,9 +565,8 @@ def find_best_two_step_entropy():
   
   double_ents = [[top_candidates[i], top_ents[i], ents2[i]] for i in sorted_indices2[::-1]]
   
-  ent2_file = os.path.join("data", GAME, "best_double_entropies.json")
-  with open(ent2_file, 'w') as fp:
-    json.dump(double_ents, fp)
+  ent2_file = CWD / "data" / GAME / "best_double_entropies.json"
+  dump_json(double_ents, ent2_file)
   
   return double_ents
 
@@ -614,8 +610,7 @@ def find_smallest_second_guess_buckets(n_top_picks = 100):
   return result
 
 def get_optimal_second_guess_map(first_guess, n_top_picks = 10, regenerate = False):
-  with open(SECOND_GUESS_MAP_FILE) as fp:
-    all_sgms = json.load(fp)
+  all_sgms = load_json(SECOND_GUESS_MAP_FILE)
   
   if first_guess in all_sgms and not regenerate:
     return all_sgms[first_guess]
@@ -638,11 +633,9 @@ def get_optimal_second_guess_map(first_guess, n_top_picks = 10, regenerate = Fal
     )
   
   # Save to file
-  with open(SECOND_GUESS_MAP_FILE) as fp:
-    all_sgms = json.load(fp)
+  all_sgms = load_json(SECOND_GUESS_MAP_FILE)
   all_sgms[first_guess] = sgm
-  with open(SECOND_GUESS_MAP_FILE, 'w') as fp:
-    json.dump(all_sgms, fp)
+  dump_json(all_sgms, SECOND_GUESS_MAP_FILE)
   
   return sgm
 
@@ -674,8 +667,7 @@ def gather_entropy_to_score_data(first_guess = "crane", priors = None):
     for sc, ent in zip(it.count(1), reversed(entropies)):
       ent_score_pairs.append((ent, sc))
   
-  with open(ENT_SCORE_PAIRS_FILE, 'w') as fp:
-    json.dump(ent_score_pairs, fp)
+  dump_json(ent_score_pairs, ENT_SCORE_PAIRS_FILE)
   
   return ent_score_pairs
 
@@ -822,9 +814,8 @@ def simulate_games(
   # Save results
   for obj, file in [(final_result, results_file), (next_guess_map, next_guess_map_file)]:
     if file:
-      path = os.path.join("data", GAME, file)
-      with open(path, 'w') as fp:
-        json.dump(obj, fp)
+      path = CWD / "data" / GAME / file
+      dump_json(obj, path)
   
   return final_result, next_guess_map
 
@@ -839,6 +830,6 @@ if __name__ == "__main__":
     # look_two_ahead=True,
     # brute_force_optimize=True,
     # hard_mode=True,
-    results_file = os.path.join("data", GAME, "results.json"),
-    next_guess_map_file = os.path.join("data", GAME, "next_guess_map.json"),
+    results_file = CWD / "data" / GAME / "results.json",
+    next_guess_map_file = CWD / "data" / GAME / "next_guess_map.json",
   )
