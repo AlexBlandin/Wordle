@@ -4,15 +4,19 @@ from operator import itemgetter
 from pathlib import Path
 from random import sample
 
-def sorted_dict(d, key = itemgetter(1), reverse = False):
-  return dict(sorted(d.items(), key = key, reverse = reverse))
+
+def sorted_dict(d, key=itemgetter(1), reverse=False):
+  return dict(sorted(d.items(), key=key, reverse=reverse))
+
 
 data = Path(__file__).parent / "data"
 words = (data / "nordle" / "words.txt").read_text().splitlines()
-ws = set(words) # working set
+ws = set(words)  # working set
+
 
 def inverse():
   return {c: set() for c in "abcdefghijklmnopqrstuvwxyz"}
+
 
 by_letter = inverse()
 by_column = {i: inverse() for i in range(5)}
@@ -28,18 +32,20 @@ for d in words:
 aware = []
 know = ["?"] * 5
 
+
 def now():
   global aware, know
   print("Contains", *aware)
   print("Known positions", *know)
 
+
 def stat():
   """
   stats for 2309 NYT Wordle words
-  
+
   # commonality of a given letter
   {"e": 1230, "a": 975, "r": 897, "o": 753, "t": 729, "l": 716, "i": 670, "s": 668, "n": 573, "c": 475, "u": 466, "y": 424, "d": 393, "h": 387, "p": 365, "m": 316, "g": 310, "b": 280, "f": 229, "k": 210, "w": 194, "v": 152, "z": 40, "x": 37, "q": 29, "j": 27}
-  
+
   # commonality of a given letter in a given column
   {0: {"s": 365, "c": 198, "b": 173, "t": 149, "p": 141, "a": 140, "f": 135, "g": 115, "d": 111, "m": 107, "r": 105, "l": 87, "w": 82, "e": 72, "h": 69, "v": 43, "o": 41, "n": 37, "i": 34, "u": 33, "q": 23, "j": 20, "k": 20, "y": 6, "z": 3},
   1: {"a": 304, "o": 279, "r": 267, "e": 241, "i": 201, "l": 200, "u": 185, "h": 144, "n": 87, "t": 77, "p": 61, "w": 44, "c": 40, "m": 38, "y": 22, "d": 20, "s": 16, "b": 16, "v": 15, "x": 14, "g": 11, "k": 10, "f": 8, "q": 5, "z": 2, "j": 2},
@@ -52,43 +58,50 @@ def stat():
     for i, c in enumerate(d):
       column[i][c] += 1
       letter[c] += 1
-  letter = sorted_dict(letter, reverse = True)
-  column = {i: sorted_dict(d, reverse = True) for i, d in column.items()}
+  letter = sorted_dict(letter, reverse=True)
+  column = {i: sorted_dict(d, reverse=True) for i, d in column.items()}
   print(len(ws))
   print(letter)
   for col, letters in column.items():
     print(f"{col}: {letters}")
 
-def guess(ws = ws):
+
+def guess(ws=ws):
   if len(ws) > 10:
     print(*sample(sorted(ws), 10))
   else:
     print(*ws)
 
-def unique(ws = ws): # guess but all letters different
+
+def unique(ws=ws):  # guess but all letters different
   guess(list(filter(lambda p: len(set(p)) == 5, ws)))
 
-def has(ltr: str, col: int): # you know it's there, but that it's not in this column
+
+def has(ltr: str, col: int):  # you know it's there, but that it's not in this column
   global aware, know
   aware.append(ltr)
   ws.difference_update(by_negate[ltr])
   ws.difference_update(by_column[col][ltr])
+
 
 def no(*letters: list[str]):
   global aware, know
   for ltr in letters:
     ws.difference_update(by_letter[ltr])
 
+
 def at(ltr: str, col: int):
   global aware, know
-  if ltr in aware: aware.remove(ltr)
+  if ltr in aware:
+    aware.remove(ltr)
   know[col] = ltr
   for d, s in by_column[col].items():
     if d != ltr:
       ws.difference_update(s)
 
+
 def code(*pairs):
-  two_words = partial(str.split, maxsplit = 1)
+  two_words = partial(str.split, maxsplit=1)
   for guess, code in map(two_words, pairs):
     for col, (letter, colour) in enumerate(zip(guess, code)):
       if colour == "g":
@@ -97,6 +110,7 @@ def code(*pairs):
         has(letter, col)
       else:
         no(letter)
+
 
 if __name__ == "__main__":
   while 1:
