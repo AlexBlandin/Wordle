@@ -8,6 +8,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.ruff_cache/
 .Python
 poetry.lock
 build/
