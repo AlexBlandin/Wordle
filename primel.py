@@ -22,10 +22,7 @@ def prime(n):  # compressed Miller primality for 5 digit prime tests
   def witness(a):
     if pow(a, d, n) == 1:
       return False
-    for i in range(s):
-      if pow(a, 2**i * d, n) == n - 1:
-        return False
-    return True
+    return all(pow(a, 2**i * d, n) != n - 1 for i in range(s))
 
   return not (witness(2) or witness(3))
 
@@ -55,7 +52,6 @@ know = ["?"] * 5
 
 
 def now():
-  global aware, know
   print("Contains", *aware)
   print("Known positions", *know)
 
@@ -93,34 +89,30 @@ def unique(ws=ws):  # guess but all digits different
 
 
 def has(x: int, c: int):  # you know it's there, but that it's not in this column
-  global aware, know
   aware.append(x)
   ws.difference_update(by_negate[x])
   ws.difference_update(by_column[c][x])
 
 
-def no(*xs: list[int]):
-  global aware, know
+def no(*xs: int):
   for x in xs:
     ws.difference_update(by_digit[x])
 
 
 def at(x: int, c: int):
-  global aware, know
   if x in aware:
     aware.remove(x)
-  know[c] = x
+  know[c] = x  # type: ignore
   for d, s in by_column[c].items():
     if d != x:
       ws.difference_update(s)
 
 
 def code(number, code):
-  for i, (n, c) in enumerate(zip(str(number), code)):
-    n = int(n)
+  for i, (n, c) in enumerate(zip(map(int, str(number)), code, strict=False)):
     match c:
       case "n":
-        no(n)
+        no(n)  # type: ignore
       case "g":
         at(n, i)
       case "y":

@@ -1,7 +1,7 @@
+from os import system
 from pathlib import Path
 from random import choice
 from sys import platform
-from os import system
 
 
 def readlines(fp: str, encoding="utf8"):
@@ -15,7 +15,7 @@ def colour(guess: str, word: str):
   colours = ["🟩" if c == word[i] else "⬛" for i, c in enumerate(guess)]
 
   upto = {c: word.count(c) for c in guess}
-  used = {c: sum(c == c_ == w for c_, w in zip(guess, word)) for c in guess}
+  used = {c: sum(c == c_ == w for c_, w in zip(guess, word, strict=False)) for c in guess}
 
   for i, b in enumerate(c in word for c in guess):
     c = guess[i]
@@ -43,7 +43,7 @@ def wordle(kind: str, words: list[str], valid: set[str], N=6):
       display(turn)
       guess = input("> ").upper()
 
-    turn[t] = (f"{t + 1}/{N}:", *colour(guess, word))
+    turn[t] = (f"{t + 1}/{N}:", *colour(guess, word))  # type: ignore
     if guess == word:
       display(turn)
       break
@@ -52,7 +52,7 @@ def wordle(kind: str, words: list[str], valid: set[str], N=6):
     print("Was:", word)
     print()
 
-  print(f"Pridel ({kind}) {day + 1} {t + 1}/{N}")
+  print(f"Pridel ({kind}) {day + 1} {t + 1}/{N}")  # type: ignore
   for _, _, cs in turn:
     print(cs)
 
@@ -93,10 +93,7 @@ def main():
       def witness(a):
         if pow(a, d, n) == 1:
           return False
-        for i in range(s):
-          if pow(a, 2**i * d, n) == n - 1:
-            return False
-        return True
+        return all(pow(a, 2**i * d, n) != n - 1 for i in range(s))
 
       return not (witness(2) or witness(3))
 
@@ -108,7 +105,7 @@ def main():
     valid |= set(words)
 
     input(
-      "Warning! This list may contain non-words, as I just pulled it from the British National Corpus and filtered to anything with 5 letters, considering it contains various lengths of repeating aaaaa and genetic code, as well as strange entries like 'zzyzx', this is more a logical exercise than an actual, authoritative 'British' version of Wordle. There's also about 30k possible words, so this isn't quite as viable in 6 guesses like usual. Press <ENTER> to continue."
+      "Warning! This list may contain non-words, as I just pulled it from the British National Corpus and filtered to anything with 5 letters, considering it contains various lengths of repeating aaaaa and genetic code, as well as strange entries like 'zzyzx', this is more a logical exercise than an actual, authoritative 'British' version of Wordle. There's also about 30k possible words, so this isn't quite as viable in 6 guesses like usual. Press <ENTER> to continue."  # noqa: E501
     )
     wordle("British mode", words, valid)
 
@@ -118,7 +115,7 @@ if __name__ == "__main__":
     from colorama import init
 
     init()
-  except:
+  except Exception:
     pass
   if False:  # test colouring is correct (it is)
     for w in "abide erase steal crepe ester".split():
