@@ -192,7 +192,7 @@ def generate_full_pattern_matrix():
 def get_pattern_matrix(words1, words2):
   if not PATTERN_GRID_DATA:
     if not PATTERN_MATRIX_FILE.exists():
-      # log.info("\n".join([ # TODO: add back in logging
+      # log.info("\n".join([ # TODO(alex): add back in logging
       #   "Generating pattern matrix. This takes a minute, but",
       #   "the result will be saved to file so that it only",
       #   "needs to be computed once.",
@@ -639,7 +639,7 @@ def get_optimal_second_guess_map(first_guess, n_top_picks=10, regenerate=False):
   if first_guess in all_sgms and not regenerate:
     return all_sgms[first_guess]
 
-  # log.info("\n".join([ # TODO: Add logging
+  # log.info("\n".join([ # TODO(alex): Add logging
   #   f"Generating optimal second guess map for {first_guess}.",
   #   "This involves brute forcing many simulations",
   #   "so can take a little while."
@@ -720,7 +720,7 @@ def simulate_games(  # noqa: PLR0915, PLR0913
       all_words,
       all_words,
       priors,
-      # **choice_config # TODO: this isn't referenced anywhere, best as I can tell, so no clue what it does (other than crash)
+      # **choice_config # TODO(alex): this isn't referenced anywhere, best as I can tell, so no clue what it does (other than crash)
     )
 
   if priors is None:
