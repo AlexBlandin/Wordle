@@ -34,7 +34,7 @@ PATTERN_MATRIX_FILE = CWD / "data" / GAME / "pattern_matrix.npy"  # this is zipp
 ENT_SCORE_PAIRS_FILE = CWD / "data" / GAME / "ent_score_pairs.json"
 
 # To store the large grid of patterns at run time
-PATTERN_GRID_DATA = dict()
+PATTERN_GRID_DATA = {}
 
 
 def safe_log2(x):
@@ -66,7 +66,7 @@ def get_word_frequencies(regenerate=False):
   if WORD_FREQ_MAP_FILE.exists() or regenerate:
     return load_json(WORD_FREQ_MAP_FILE)
   # Otherwise, regenerate
-  freq_map = dict()
+  freq_map = {}
   with open(WORD_FREQ_FILE, encoding="locale") as fp:
     for line in fp.readlines():
       pieces = line.split()
@@ -83,8 +83,7 @@ def sigmoid(z):
 
 
 def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):
-  """
-  We know that that list of wordle answers was curated by some human
+  """We know that that list of wordle answers was curated by some human
   based on whether they're sufficiently common. This function aims
   to associate each word with the likelihood that it would actually
   be selected for the final answer.
@@ -103,7 +102,7 @@ def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):
   x_width = width_under_sigmoid
   c = x_width * (-0.5 + n_common / len(words))
   xs = np.linspace(c - x_width / 2, c + x_width / 2, len(words))
-  priors = dict()
+  priors = {}
   for word, x in zip(sorted_words, xs, strict=False):
     priors[word] = sigmoid(x)
   return priors
@@ -112,7 +111,7 @@ def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):
 def get_true_wordle_prior():
   words = get_word_list()
   short_words = get_word_list(short=True)
-  return dict((w, int(w in short_words)) for w in words)
+  return {w: int(w in short_words) for w in words}
 
 
 # Generating color patterns between strings, etc.
@@ -123,8 +122,7 @@ def words_to_int_arrays(words):
 
 
 def generate_pattern_matrix(words1, words2):
-  """
-  A pattern for two words represents the worle-similarity
+  """A pattern for two words represents the worle-similarity
   pattern (grey -> 0, yellow -> 1, green -> 2) but as an integer
   between 0 and 3^5. Reading this integer in ternary gives the
   associated pattern.
@@ -136,7 +134,6 @@ def generate_pattern_matrix(words1, words2):
   is saved to file so that this only needs to be evaluated once, and
   all remaining pattern matching is a lookup
   """
-
   # Number of letters/words
   nl = len(words1[0])
   nw1 = len(words1)  # Number of words
@@ -181,9 +178,7 @@ def generate_pattern_matrix(words1, words2):
   # Rather than representing a color pattern as a lists of integers,
   # store it as a single integer, whose ternary representations corresponds
   # to that list of integers.
-  pattern_matrix = np.dot(full_pattern_matrix, (3 ** np.arange(nl)).astype(np.uint8))
-
-  return pattern_matrix
+  return np.dot(full_pattern_matrix, (3 ** np.arange(nl)).astype(np.uint8))
 
 
 def generate_full_pattern_matrix():
@@ -269,8 +264,7 @@ def get_weights(words, priors):
 
 
 def get_pattern_distributions(allowed_words, possible_words, weights):
-  """
-  For each possible guess in allowed_words, this finds the probability
+  """For each possible guess in allowed_words, this finds the probability
   distribution across all of the 3^5 wordle patterns you could see, assuming
   the possible answers are in possible_words with associated probabilities
   in weights.
@@ -307,26 +301,25 @@ def max_bucket_size(guess, possible_words, weights):
 
 
 def words_to_max_buckets(possible_words, weights):
-  return dict((word, max_bucket_size(word, possible_words, weights)) for word in tqdm(possible_words))
+  return {word: max_bucket_size(word, possible_words, weights) for word in tqdm(possible_words)}
 
   words_and_maxes = list(w2m.items())  # noqa: F821
   words_and_maxes.sort(key=lambda t: t[1])
   words_and_maxes[:-20:-1]
+  return None
 
 
 def get_bucket_sizes(allowed_words, possible_words):
-  """
-  Returns a (len(allowed_words), 243) shape array reprenting the size of
-  word buckets associated with each guess in allowed_words
+  """Returns a (len(allowed_words), 243) shape array reprenting the size of
+  word buckets associated with each guess in allowed_words.
   """
   weights = np.ones(len(possible_words))
   return get_pattern_distributions(allowed_words, possible_words, weights)
 
 
 def get_bucket_counts(allowed_words, possible_words):
-  """
-  Returns the number of separate buckets that each guess in allowed_words
-  would separate possible_words into
+  """Returns the number of separate buckets that each guess in allowed_words
+  would separate possible_words into.
   """
   bucket_sizes = get_bucket_sizes(allowed_words, possible_words)
   return (bucket_sizes > 0).sum(1)
@@ -347,9 +340,9 @@ def get_average_second_step_entropies(first_guesses, allowed_second_guesses, pos
     # List of maximum entropies you could achieve in
     # the second step for each pattern you might see
     # after this setp
-    ents2 = np.array([
-      get_entropies(allowed_words=allowed_second_guesses, possible_words=bucket, weights=get_weights(bucket, priors)).max() for bucket in word_buckets
-    ])
+    ents2 = np.array(
+      [get_entropies(allowed_words=allowed_second_guesses, possible_words=bucket, weights=get_weights(bucket, priors)).max() for bucket in word_buckets],
+    )
     # Multiply each such maximal entropy by the corresponding
     # probability of falling into that bucket
     result.append(np.dot(ents2, dist))
@@ -370,7 +363,10 @@ def get_guess_values_array(allowed_words, possible_words, priors, look_two_ahead
     ents2 = np.zeros(ents1.shape)
     top_indices = np.argsort(ents1)[-250:]
     ents2[top_indices] = get_average_second_step_entropies(
-      first_guesses=np.array(allowed_words)[top_indices], allowed_second_guesses=allowed_words, possible_words=possible_words, priors=priors
+      first_guesses=np.array(allowed_words)[top_indices],
+      allowed_second_guesses=allowed_words,
+      possible_words=possible_words,
+      priors=priors,
     )
     return np.array([ents1, ents2, probs])
   else:
@@ -378,8 +374,7 @@ def get_guess_values_array(allowed_words, possible_words, priors, look_two_ahead
 
 
 def entropy_to_expected_score(ent):
-  """
-  Based on a regression associating entropies with typical scores
+  """Based on a regression associating entropies with typical scores
   from that point forward in simulated games, this function returns
   what the expected number of guesses required will be in a game where
   there's a given amount of entropy in the remaining possibilities.
@@ -432,23 +427,26 @@ def get_expected_scores(
     H2s = [get_entropies([guess2], bucket, get_weights(bucket, priors))[0] for guess2, bucket in zip(second_guesses, buckets, strict=False)]  # type: ignore
 
     prob = word_to_weight.get(guess, 0)
-    expected_scores[i] = sum((
-      # 1 times Probability guess1 is correct
-      1 * prob,
-      # 2 times probability guess2 is correct
-      2 * (1 - prob) * sum(p * word_to_weight.get(g2, 0) for p, g2 in zip(dist, second_guesses, strict=False)),
-      # 2 plus expected score two steps from now
-      (1 - prob)
-      * (2 + sum(p * (1 - word_to_weight.get(g2, 0)) * entropy_to_expected_score(H0 - H1 - H2) for p, g2, H2 in zip(dist, second_guesses, H2s, strict=False))),
-    ))
+    expected_scores[i] = sum(
+      (
+        # 1 times Probability guess1 is correct
+        1 * prob,
+        # 2 times probability guess2 is correct
+        2 * (1 - prob) * sum(p * word_to_weight.get(g2, 0) for p, g2 in zip(dist, second_guesses, strict=False)),
+        # 2 plus expected score two steps from now
+        (1 - prob)
+        * (
+          2 + sum(p * (1 - word_to_weight.get(g2, 0)) * entropy_to_expected_score(H0 - H1 - H2) for p, g2, H2 in zip(dist, second_guesses, H2s, strict=False))
+        ),
+      ),
+    )
   return expected_scores
 
 
 def get_score_lower_bounds(allowed_words, possible_words):
-  """
-  Assuming a uniform distribution on how likely each element
+  """Assuming a uniform distribution on how likely each element
   of possible_words is, this gives the a lower boudn on the
-  possible score for each word in allowed_words
+  possible score for each word in allowed_words.
   """
   bucket_counts = get_bucket_counts(allowed_words, possible_words)
   N = max(len(possible_words), 1)
@@ -461,7 +459,7 @@ def get_score_lower_bounds(allowed_words, possible_words):
   return p1s + 2 * p2s + 3 * p3s
 
 
-def optimal_guess(  # noqa: PLR0913, PLR0917
+def optimal_guess(  # noqa: PLR0913
   allowed_words,
   possible_words,
   priors,
@@ -520,9 +518,8 @@ def brute_force_optimal_guess(all_words, possible_words, priors, n_top_picks=10,
 
 
 def get_two_step_score_lower_bound(first_guess, allowed_words, possible_words):
-  """
-  Useful to prove what the minimum possible average score could be
-  for a given initial guess
+  """Useful to prove what the minimum possible average score could be
+  for a given initial guess.
   """
   N = len(possible_words)
   buckets = get_word_buckets(first_guess, possible_words)
@@ -553,7 +550,7 @@ def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):
     guess_to_score[first_guess] = total
     guess_to_dist[first_guess] = result["score_distribution"]
 
-  top_scorers = sorted(list(guess_to_score.keys()), key=lambda w: guess_to_score[w])
+  top_scorers = sorted(guess_to_score.keys(), key=lambda w: guess_to_score[w])
   result = [[w, guess_to_score[w], guess_to_dist[w]] for w in top_scorers]
 
   file = CWD / "data" / GAME / f"best_scores{'_hard_mode' if hard_mode else ''}.json"
@@ -594,7 +591,7 @@ def find_best_two_step_entropy():
   return double_ents
 
 
-def find_smallest_second_guess_buckets(n_top_picks=100):  # noqa: PLR0914
+def find_smallest_second_guess_buckets(n_top_picks=100):
   all_words = get_word_list()
   possibilities = get_word_list(short=True)
   priors = get_true_wordle_prior()
@@ -622,15 +619,17 @@ def find_smallest_second_guess_buckets(n_top_picks=100):  # noqa: PLR0914
   result = []
   for j in np.argsort(avg_ts_buckets):
     i = top_indices[j]
-    result.append((
-      # Word
-      all_words[i],
-      # Average bucket size after first guess
-      len(possibilities) * (dists[i] ** 2).sum(),
-      # Average bucket size after second, with optimal
-      # play.
-      avg_ts_buckets[j],
-    ))
+    result.append(
+      (
+        # Word
+        all_words[i],
+        # Average bucket size after first guess
+        len(possibilities) * (dists[i] ** 2).sum(),
+        # Average bucket size after second, with optimal
+        # play.
+        avg_ts_buckets[j],
+      ),
+    )
   return result
 
 
@@ -696,7 +695,7 @@ def gather_entropy_to_score_data(first_guess="crane", priors=None):
   return ent_score_pairs
 
 
-def simulate_games(  # noqa: PLR0915, PLR0917, PLR0913, PLR0914
+def simulate_games(  # noqa: PLR0915, PLR0913
   first_guess=None,
   priors=None,
   look_two_ahead=False,
@@ -798,29 +797,31 @@ def simulate_games(  # noqa: PLR0915, PLR0917, PLR0913, PLR0914
     seen.add(answer)
 
     game_results.append(
-      dict(
-        score=int(score),
-        answer=answer,
-        guesses=guesses,
-        patterns=list(map(int, patterns)),
-        reductions=possibility_counts,
-      )
+      {
+        "score": int(score),
+        "answer": answer,
+        "guesses": guesses,
+        "patterns": list(map(int, patterns)),
+        "reductions": possibility_counts,
+      },
     )
     # Print outcome
     if not quiet:
-      message = "\n".join([
-        "",
-        f"Score: {score}",
-        f"Answer: {answer}",
-        f"Guesses: {guesses}",
-        f"Reductions: {possibility_counts}",
-        *patterns_to_string((*patterns, 3**5 - 1)).split("\n"),
-        *" " * (6 - len(patterns)),
-        f"Distribution: {score_dist}",
-        f"Total guesses: {total_guesses}",
-        f"Average: {average}",
-        *" " * 2,
-      ])
+      message = "\n".join(
+        [
+          "",
+          f"Score: {score}",
+          f"Answer: {answer}",
+          f"Guesses: {guesses}",
+          f"Reductions: {possibility_counts}",
+          *patterns_to_string((*patterns, 3**5 - 1)).split("\n"),
+          *" " * (6 - len(patterns)),
+          f"Distribution: {score_dist}",
+          f"Total guesses: {total_guesses}",
+          f"Average: {average}",
+          *" " * 2,
+        ],
+      )
       if answer is not test_set[0]:
         # Move cursor back up to the top of the message
         n = len(message.split("\n")) + 1

@@ -9,7 +9,7 @@ def readlines(fp: str, encoding="utf8"):
 
 
 def colour(guess: str, word: str):
-  """Colours a guess for the given word, returns (terminal, tweetable) versions"""
+  """Colours a guess for the given word, returns (terminal, tweetable) versions."""
   plain, green, yellow = "\033[0m", "\033[0;32m", "\033[0;33m"
   letters = [f"{green}{c}" if c == word[i] else f"{plain}{c}" for i, c in enumerate(guess)] + [plain]
   colours = ["🟩" if c == word[i] else "⬛" for i, c in enumerate(guess)]
@@ -26,7 +26,7 @@ def colour(guess: str, word: str):
 
 
 def wordle(kind: str, words: list[str], valid: set[str], N=6):
-  """Generic Text-Mode Wordle, say what kind, the possible words, the valid inputs, and how many guesses they get"""
+  """Generic Text-Mode Wordle, say what kind, the possible words, the valid inputs, and how many guesses they get."""
   day, word = choice(list(enumerate(words)))
 
   def display(turn):
@@ -105,7 +105,7 @@ def main():
     valid |= set(words)
 
     input(
-      "Warning! This list may contain non-words, as I just pulled it from the British National Corpus and filtered to anything with 5 letters, considering it contains various lengths of repeating aaaaa and genetic code, as well as strange entries like 'zzyzx', this is more a logical exercise than an actual, authoritative 'British' version of Wordle. There's also about 30k possible words, so this isn't quite as viable in 6 guesses like usual. Press <ENTER> to continue."  # noqa: E501
+      "Warning! This list may contain non-words, as I just pulled it from the British National Corpus and filtered to anything with 5 letters, considering it contains various lengths of repeating aaaaa and genetic code, as well as strange entries like 'zzyzx', this is more a logical exercise than an actual, authoritative 'British' version of Wordle. There's also about 30k possible words, so this isn't quite as viable in 6 guesses like usual. Press <ENTER> to continue.",  # noqa: E501
     )
     wordle("British mode", words, valid)
 

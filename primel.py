@@ -1,7 +1,7 @@
 from collections import defaultdict
 from operator import itemgetter
-from random import sample
 from pprint import pprint as pp
+from random import sample
 
 
 def sorted_dict(d, key=itemgetter(1), reverse=False):
@@ -57,9 +57,8 @@ def now():
 
 
 def stat():
-  """
-  # commonality of a given digit
-  {1: 5672, 3: 5552, 7: 5520, 9: 5484, 2: 3515, 5: 3456, 4: 3412, 6: 3372, 8: 3339, 0: 2493}
+  """# commonality of a given digit
+  {1: 5672, 3: 5552, 7: 5520, 9: 5484, 2: 3515, 5: 3456, 4: 3412, 6: 3372, 8: 3339, 0: 2493}.
 
   # commonality of a given digit in a given column (by default only 0 and 4 are interesting)
   {0: {1: 1033, 2: 983, 3: 958, 4: 930, 5: 924, 7: 902, 9: 879, 6: 878, 8: 876},
