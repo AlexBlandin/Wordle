@@ -1,3 +1,11 @@
+"""
+Optimal wordle.
+
+Based on 3b1b's sim.
+
+Copyright 2022 Alex Blandin
+"""
+
 import itertools as it
 import json
 import logging
@@ -37,37 +45,37 @@ ENT_SCORE_PAIRS_FILE = CWD / "data" / GAME / "ent_score_pairs.json"
 PATTERN_GRID_DATA = {}
 
 
-def safe_log2(x):
+def safe_log2(x):  # noqa: ANN001, ANN202
   return math.log2(x) if x > 0 else 0
 
 
 # Reading from files
 
 
-def load_json(path: Path):
-  with open(path, encoding="locale") as fp:
+def load_json(path: Path):  # noqa: ANN202
+  with path.open(encoding="locale") as fp:
     return json.load(fp)
 
 
-def dump_json(d: dict, path: Path):
-  with open(path, "w", encoding="locale") as fp:
+def dump_json(d: dict, path: Path) -> None:
+  with path.open("w", encoding="locale") as fp:
     json.dump(d, fp)
 
 
-def get_word_list(short=False):
+def get_word_list(short=False):  # noqa: ANN001, ANN202, FBT002
   result = []
   file = SHORT_WORD_LIST_FILE if short else LONG_WORD_LIST_FILE
-  with open(file, encoding="locale") as fp:
+  with file.open(encoding="locale") as fp:
     result.extend(word.strip() for word in fp.readlines())
   return result
 
 
-def get_word_frequencies(regenerate=False):
+def get_word_frequencies(regenerate=False):  # noqa: ANN001, ANN202, FBT002
   if WORD_FREQ_MAP_FILE.exists() or regenerate:
     return load_json(WORD_FREQ_MAP_FILE)
   # Otherwise, regenerate
   freq_map = {}
-  with open(WORD_FREQ_FILE, encoding="locale") as fp:
+  with WORD_FREQ_FILE.open(encoding="locale") as fp:
     for line in fp.readlines():
       pieces = line.split()
       word = pieces[0]
@@ -77,19 +85,19 @@ def get_word_frequencies(regenerate=False):
   return freq_map
 
 
-def sigmoid(z):
+def sigmoid(z):  # noqa: ANN001, ANN202
   """The sigmoid function."""
   return 1.0 / (1.0 + np.exp(-z))
 
 
-def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):
+def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):  # noqa: ANN001, ANN202
   """We know that that list of wordle answers was curated by some human
   based on whether they're sufficiently common. This function aims
   to associate each word with the likelihood that it would actually
   be selected for the final answer.
 
   Sort the words by frequency, then apply a sigmoid along it.
-  """
+  """  # noqa: D205
   freq_map = get_word_frequencies()
   words = np.array(list(freq_map.keys()))
   freqs = np.array([freq_map[w] for w in words])
@@ -108,7 +116,7 @@ def get_frequency_based_priors(n_common=3000, width_under_sigmoid=10):
   return priors
 
 
-def get_true_wordle_prior():
+def get_true_wordle_prior():  # noqa: ANN202
   words = get_word_list()
   short_words = get_word_list(short=True)
   return {w: int(w in short_words) for w in words}
@@ -117,11 +125,11 @@ def get_true_wordle_prior():
 # Generating color patterns between strings, etc.
 
 
-def words_to_int_arrays(words):
+def words_to_int_arrays(words):  # noqa: ANN001, ANN202
   return np.array([[ord(c) for c in w] for w in words], dtype=np.uint8)
 
 
-def generate_pattern_matrix(words1, words2):
+def generate_pattern_matrix(words1, words2):  # noqa: ANN001, ANN202
   """A pattern for two words represents the worle-similarity
   pattern (grey -> 0, yellow -> 1, green -> 2) but as an integer
   between 0 and 3^5. Reading this integer in ternary gives the
@@ -133,7 +141,7 @@ def generate_pattern_matrix(words1, words2):
   (perhaps at the expense of easier readibility), and the the result
   is saved to file so that this only needs to be evaluated once, and
   all remaining pattern matching is a lookup
-  """
+  """  # noqa: D205
   # Number of letters/words
   nl = len(words1[0])
   nw1 = len(words1)  # Number of words
@@ -181,7 +189,7 @@ def generate_pattern_matrix(words1, words2):
   return np.dot(full_pattern_matrix, (3 ** np.arange(nl)).astype(np.uint8))
 
 
-def generate_full_pattern_matrix():
+def generate_full_pattern_matrix():  # noqa: ANN202
   words = get_word_list()
   pattern_matrix = generate_pattern_matrix(words, words)
   # Save to file
@@ -189,7 +197,7 @@ def generate_full_pattern_matrix():
   return pattern_matrix
 
 
-def get_pattern_matrix(words1, words2):
+def get_pattern_matrix(words1, words2):  # noqa: ANN001, ANN202
   if not PATTERN_GRID_DATA:
     if not PATTERN_MATRIX_FILE.exists():
       # log.info("\n".join([ # TODO(alex): add back in logging
@@ -209,7 +217,7 @@ def get_pattern_matrix(words1, words2):
   return full_grid[np.ix_(indices1, indices2)]
 
 
-def get_pattern(guess, answer):
+def get_pattern(guess, answer):  # noqa: ANN001, ANN202
   if PATTERN_GRID_DATA:
     saved_words = PATTERN_GRID_DATA["words_to_index"]
     if guess in saved_words and answer in saved_words:
@@ -217,11 +225,11 @@ def get_pattern(guess, answer):
   return generate_pattern_matrix([guess], [answer])[0, 0]
 
 
-def pattern_from_string(pattern_string):
+def pattern_from_string(pattern_string):  # noqa: ANN001, ANN202
   return sum((3**i) * int(c) for i, c in enumerate(pattern_string))
 
 
-def pattern_to_int_list(pattern):
+def pattern_to_int_list(pattern):  # noqa: ANN001, ANN202
   result = []
   curr = pattern
   for _ in range(5):
@@ -230,21 +238,21 @@ def pattern_to_int_list(pattern):
   return result
 
 
-def pattern_to_string(pattern):
+def pattern_to_string(pattern):  # noqa: ANN001, ANN202
   d = {MISS: "⬛", MISPLACED: "🟨", EXACT: "🟩"}
   return "".join(d[x] for x in pattern_to_int_list(pattern))
 
 
-def patterns_to_string(patterns):
+def patterns_to_string(patterns):  # noqa: ANN001, ANN202
   return "\n".join(map(pattern_to_string, patterns))
 
 
-def get_possible_words(guess, pattern, word_list):
+def get_possible_words(guess, pattern, word_list):  # noqa: ANN001, ANN202
   all_patterns = get_pattern_matrix([guess], word_list).flatten()
   return list(np.array(word_list)[all_patterns == pattern])
 
 
-def get_word_buckets(guess, possible_words):
+def get_word_buckets(guess, possible_words):  # noqa: ANN001, ANN202
   buckets = [[] for x in range(3**5)]
   hashes = get_pattern_matrix([guess], possible_words).flatten()
   for index, word in zip(hashes, possible_words, strict=False):
@@ -255,7 +263,7 @@ def get_word_buckets(guess, possible_words):
 # Functions associated with entropy calculation
 
 
-def get_weights(words, priors):
+def get_weights(words, priors):  # noqa: ANN001, ANN202
   frequencies = np.array([priors[word] for word in words])
   total = frequencies.sum()
   if total == 0:
@@ -263,7 +271,7 @@ def get_weights(words, priors):
   return frequencies / total
 
 
-def get_pattern_distributions(allowed_words, possible_words, weights):
+def get_pattern_distributions(allowed_words, possible_words, weights):  # noqa: ANN001, ANN202
   """For each possible guess in allowed_words, this finds the probability
   distribution across all of the 3^5 wordle patterns you could see, assuming
   the possible answers are in possible_words with associated probabilities
@@ -272,7 +280,7 @@ def get_pattern_distributions(allowed_words, possible_words, weights):
   It considers the pattern hash grid between the two lists of words, and uses
   that to bucket together words from possible_words which would produce
   the same pattern, adding together their corresponding probabilities.
-  """
+  """  # noqa: D205
   pattern_matrix = get_pattern_matrix(allowed_words, possible_words)
 
   n = len(allowed_words)
@@ -283,24 +291,24 @@ def get_pattern_distributions(allowed_words, possible_words, weights):
   return distributions
 
 
-def entropy_of_distributions(distributions, atol=1e-12):
+def entropy_of_distributions(distributions, atol=1e-12):  # noqa: ANN001, ANN202, ARG001
   axis = len(distributions.shape) - 1
   return entropy(distributions, base=2, axis=axis)
 
 
-def get_entropies(allowed_words, possible_words, weights):
+def get_entropies(allowed_words, possible_words, weights):  # noqa: ANN001, ANN202
   if weights.sum() == 0:
     return np.zeros(len(allowed_words))
   distributions = get_pattern_distributions(allowed_words, possible_words, weights)
   return entropy_of_distributions(distributions)
 
 
-def max_bucket_size(guess, possible_words, weights):
+def max_bucket_size(guess, possible_words, weights):  # noqa: ANN001, ANN202
   dist = get_pattern_distributions([guess], possible_words, weights)
   return dist.max()
 
 
-def words_to_max_buckets(possible_words, weights):
+def words_to_max_buckets(possible_words, weights):  # noqa: ANN001, ANN202
   return {word: max_bucket_size(word, possible_words, weights) for word in tqdm(possible_words)}
 
   words_and_maxes = list(w2m.items())  # noqa: F821
@@ -309,18 +317,18 @@ def words_to_max_buckets(possible_words, weights):
   return None
 
 
-def get_bucket_sizes(allowed_words, possible_words):
+def get_bucket_sizes(allowed_words, possible_words):  # noqa: ANN001, ANN202
   """Returns a (len(allowed_words), 243) shape array reprenting the size of
   word buckets associated with each guess in allowed_words.
-  """
+  """  # noqa: D205
   weights = np.ones(len(possible_words))
   return get_pattern_distributions(allowed_words, possible_words, weights)
 
 
-def get_bucket_counts(allowed_words, possible_words):
+def get_bucket_counts(allowed_words, possible_words):  # noqa: ANN001, ANN202
   """Returns the number of separate buckets that each guess in allowed_words
   would separate possible_words into.
-  """
+  """  # noqa: D205
   bucket_sizes = get_bucket_sizes(allowed_words, possible_words)
   return (bucket_sizes > 0).sum(1)
 
@@ -328,20 +336,27 @@ def get_bucket_counts(allowed_words, possible_words):
 # Functions to analyze second guesses
 
 
-def get_average_second_step_entropies(first_guesses, allowed_second_guesses, possible_words, priors):
+def get_average_second_step_entropies(first_guesses, allowed_second_guesses, possible_words, priors):  # noqa: ANN001, ANN202
   result = []
   weights = get_weights(possible_words, priors)
   if weights.sum() == 0:
     return np.zeros(len(first_guesses))
 
   distributions = get_pattern_distributions(first_guesses, possible_words, weights)
-  for first_guess, dist in tqdm(list(zip(first_guesses, distributions, strict=False)), leave=False, desc="Searching 2nd step entropies"):
+  for first_guess, dist in tqdm(
+    list(zip(first_guesses, distributions, strict=False)), leave=False, desc="Searching 2nd step entropies"
+  ):
     word_buckets = get_word_buckets(first_guess, possible_words)
     # List of maximum entropies you could achieve in
     # the second step for each pattern you might see
     # after this setp
     ents2 = np.array(
-      [get_entropies(allowed_words=allowed_second_guesses, possible_words=bucket, weights=get_weights(bucket, priors)).max() for bucket in word_buckets],
+      [
+        get_entropies(
+          allowed_words=allowed_second_guesses, possible_words=bucket, weights=get_weights(bucket, priors)
+        ).max()
+        for bucket in word_buckets
+      ],
     )
     # Multiply each such maximal entropy by the corresponding
     # probability of falling into that bucket
@@ -352,7 +367,7 @@ def get_average_second_step_entropies(first_guesses, allowed_second_guesses, pos
 # Solvers
 
 
-def get_guess_values_array(allowed_words, possible_words, priors, look_two_ahead=False):
+def get_guess_values_array(allowed_words, possible_words, priors, look_two_ahead=False):  # noqa: ANN001, ANN202, FBT002
   weights = get_weights(possible_words, priors)
   ents1 = get_entropies(allowed_words, possible_words, weights)
   probs = np.array([0 if word not in possible_words else weights[possible_words.index(word)] for word in allowed_words])
@@ -369,16 +384,16 @@ def get_guess_values_array(allowed_words, possible_words, priors, look_two_ahead
       priors=priors,
     )
     return np.array([ents1, ents2, probs])
-  else:
+  else:  # noqa: RET505
     return np.array([ents1, probs])
 
 
-def entropy_to_expected_score(ent):
+def entropy_to_expected_score(ent):  # noqa: ANN001, ANN202
   """Based on a regression associating entropies with typical scores
   from that point forward in simulated games, this function returns
   what the expected number of guesses required will be in a game where
   there's a given amount of entropy in the remaining possibilities.
-  """
+  """  # noqa: D205
   # Assuming you can definitely get it in the next guess,
   # this is the expected score
   min_score = 2 ** (-ent) + 2 * (1 - 2 ** (-ent))
@@ -390,24 +405,24 @@ def entropy_to_expected_score(ent):
   return min_score + 1.5 * ent / 11.5
 
 
-def get_expected_scores(
-  allowed_words,
-  possible_words,
-  priors,
-  look_two_ahead=False,
-  n_top_candidates_for_two_step=25,
+def get_expected_scores(  # noqa: ANN202
+  allowed_words,  # noqa: ANN001
+  possible_words,  # noqa: ANN001
+  priors,  # noqa: ANN001
+  look_two_ahead=False,  # noqa: ANN001, FBT002
+  n_top_candidates_for_two_step=25,  # noqa: ANN001
 ):
   # Currenty entropy of distribution
   weights = get_weights(possible_words, priors)
-  H0 = entropy_of_distributions(weights)
-  H1s = get_entropies(allowed_words, possible_words, weights)
+  H0 = entropy_of_distributions(weights)  # noqa: N806
+  H1s = get_entropies(allowed_words, possible_words, weights)  # noqa: N806
 
   word_to_weight = dict(zip(possible_words, weights, strict=False))
   probs = np.array([word_to_weight.get(w, 0) for w in allowed_words])
   # If this guess is the true answer, score is 1. Otherwise, it's 1 plus
   # the expected number of guesses it will take after getting the corresponding
   # amount of information.
-  expected_scores = probs + (1 - probs) * (1 + entropy_to_expected_score(H0 - H1s))  # type: ignore
+  expected_scores = probs + (1 - probs) * (1 + entropy_to_expected_score(H0 - H1s))  # type: ignore  # noqa: PGH003
 
   if not look_two_ahead:
     return expected_scores
@@ -420,11 +435,14 @@ def get_expected_scores(
   expected_scores += 1  # Push up the rest
   for i in tqdm(sorted_indices[:n_top_candidates_for_two_step], leave=False):
     guess = allowed_words[i]
-    H1 = H1s[i]  # type: ignore
+    H1 = H1s[i]  # type: ignore  # noqa: N806, PGH003
     dist = get_pattern_distributions([guess], possible_words, weights)[0]
     buckets = get_word_buckets(guess, possible_words)
     second_guesses = [optimal_guess(allowed_second_guesses, bucket, priors, look_two_ahead=False) for bucket in buckets]
-    H2s = [get_entropies([guess2], bucket, get_weights(bucket, priors))[0] for guess2, bucket in zip(second_guesses, buckets, strict=False)]  # type: ignore
+    H2s = [  # noqa: N806
+      get_entropies([guess2], bucket, get_weights(bucket, priors))[0]
+      for guess2, bucket in zip(second_guesses, buckets, strict=False)
+    ]  # type: ignore  # noqa: PGH003
 
     prob = word_to_weight.get(guess, 0)
     expected_scores[i] = sum(
@@ -436,20 +454,24 @@ def get_expected_scores(
         # 2 plus expected score two steps from now
         (1 - prob)
         * (
-          2 + sum(p * (1 - word_to_weight.get(g2, 0)) * entropy_to_expected_score(H0 - H1 - H2) for p, g2, H2 in zip(dist, second_guesses, H2s, strict=False))
+          2
+          + sum(
+            p * (1 - word_to_weight.get(g2, 0)) * entropy_to_expected_score(H0 - H1 - H2)
+            for p, g2, H2 in zip(dist, second_guesses, H2s, strict=False)
+          )
         ),
       ),
     )
   return expected_scores
 
 
-def get_score_lower_bounds(allowed_words, possible_words):
+def get_score_lower_bounds(allowed_words, possible_words):  # noqa: ANN001, ANN202
   """Assuming a uniform distribution on how likely each element
   of possible_words is, this gives the a lower boudn on the
   possible score for each word in allowed_words.
-  """
+  """  # noqa: D205
   bucket_counts = get_bucket_counts(allowed_words, possible_words)
-  N = max(len(possible_words), 1)
+  N = max(len(possible_words), 1)  # noqa: N806
   # Probabilities of getting it in 1
   p1s = np.array([w in possible_words for w in allowed_words]) / N
   # Probabilities of getting it in 2
@@ -459,13 +481,13 @@ def get_score_lower_bounds(allowed_words, possible_words):
   return p1s + 2 * p2s + 3 * p3s
 
 
-def optimal_guess(  # noqa: PLR0913
-  allowed_words,
-  possible_words,
-  priors,
-  look_two_ahead=False,
-  optimize_for_uniform_distribution=False,
-  purely_maximize_information=False,
+def optimal_guess(  # noqa: ANN202, PLR0913
+  allowed_words,  # noqa: ANN001
+  possible_words,  # noqa: ANN001
+  priors,  # noqa: ANN001
+  look_two_ahead=False,  # noqa: ANN001, FBT002
+  optimize_for_uniform_distribution=False,  # noqa: ANN001, FBT002
+  purely_maximize_information=False,  # noqa: ANN001, FBT002
 ):
   if purely_maximize_information:
     if len(possible_words) == 1:
@@ -482,7 +504,7 @@ def optimal_guess(  # noqa: PLR0913
   return allowed_words[np.argmin(expected_scores)]
 
 
-def brute_force_optimal_guess(all_words, possible_words, priors, n_top_picks=10, display_progress=False):
+def brute_force_optimal_guess(all_words, possible_words, priors, n_top_picks=10, display_progress=False):  # noqa: ANN001, ANN202, FBT002
   if len(possible_words) == 0:
     # Doesn't matter what to return in this case, so just default to first word in list.
     return all_words[0]
@@ -492,7 +514,9 @@ def brute_force_optimal_guess(all_words, possible_words, priors, n_top_picks=10,
   expected_scores = get_score_lower_bounds(all_words, possible_words)
   top_choices = [all_words[i] for i in np.argsort(expected_scores)[:n_top_picks]]
   true_average_scores = []
-  iterable = tqdm(top_choices, desc=f"Possibilities: {len(possible_words)}", leave=False) if display_progress else top_choices
+  iterable = (
+    tqdm(top_choices, desc=f"Possibilities: {len(possible_words)}", leave=False) if display_progress else top_choices
+  )
 
   for next_guess in iterable:
     scores = []
@@ -517,11 +541,11 @@ def brute_force_optimal_guess(all_words, possible_words, priors, n_top_picks=10,
 # Run simulated wordle games
 
 
-def get_two_step_score_lower_bound(first_guess, allowed_words, possible_words):
+def get_two_step_score_lower_bound(first_guess, allowed_words, possible_words):  # noqa: ANN001, ANN202
   """Useful to prove what the minimum possible average score could be
   for a given initial guess.
-  """
-  N = len(possible_words)
+  """  # noqa: D205
+  N = len(possible_words)  # noqa: N806
   buckets = get_word_buckets(first_guess, possible_words)
   min_score = 0
   for bucket in buckets:
@@ -533,7 +557,7 @@ def get_two_step_score_lower_bound(first_guess, allowed_words, possible_words):
   return p + (1 - p) * (1 + min_score)
 
 
-def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):
+def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):  # noqa: ANN001, ANN202, FBT002
   # Run find_best_two_step_entropy first
   file = CWD / "data" / GAME / "best_double_entropies.json"
   double_ents = load_json(file)
@@ -544,7 +568,9 @@ def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):
   guess_to_dist = {}
   for row in tqdm(double_ents[:n_top_candidates]):
     first_guess = row[0]
-    result, _decision_map = simulate_games(first_guess, priors=priors, optimize_for_uniform_distribution=True, hard_mode=hard_mode, quiet=quiet)
+    result, _decision_map = simulate_games(
+      first_guess, priors=priors, optimize_for_uniform_distribution=True, hard_mode=hard_mode, quiet=quiet
+    )
     average = result["average_score"]
     total = int(np.round(average * len(answers)))
     guess_to_score[first_guess] = total
@@ -555,12 +581,12 @@ def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):
 
   file = CWD / "data" / GAME / f"best_scores{'_hard_mode' if hard_mode else ''}.json"
 
-  dump_json(result, file)  # type: ignore
+  dump_json(result, file)  # type: ignore  # noqa: PGH003
 
   return result
 
 
-def find_best_two_step_entropy():
+def find_best_two_step_entropy():  # noqa: ANN202
   words = get_word_list()
   answers = get_word_list(short=True)
   priors = get_true_wordle_prior()
@@ -568,10 +594,10 @@ def find_best_two_step_entropy():
   ents = get_entropies(words, answers, get_weights(answers, priors))
   sorted_indices = np.argsort(ents)
   top_candidates = np.array(words)[sorted_indices[:-250:-1]]
-  top_ents = ents[sorted_indices[:-250:-1]]  # type: ignore
+  top_ents = ents[sorted_indices[:-250:-1]]  # type: ignore  # noqa: PGH003
 
   ent_file = CWD / "data" / GAME / "best_entropies.json"
-  dump_json([[tc, te] for tc, te in zip(top_candidates, top_ents, strict=False)], ent_file)  # type: ignore
+  dump_json([[tc, te] for tc, te in zip(top_candidates, top_ents, strict=False)], ent_file)  # type: ignore  # noqa: PGH003
 
   ents2 = get_average_second_step_entropies(
     top_candidates,
@@ -586,12 +612,12 @@ def find_best_two_step_entropy():
   double_ents = [[top_candidates[i], top_ents[i], ents2[i]] for i in sorted_indices2[::-1]]
 
   ent2_file = CWD / "data" / GAME / "best_double_entropies.json"
-  dump_json(double_ents, ent2_file)  # type: ignore
+  dump_json(double_ents, ent2_file)  # type: ignore  # noqa: PGH003
 
   return double_ents
 
 
-def find_smallest_second_guess_buckets(n_top_picks=100):
+def find_smallest_second_guess_buckets(n_top_picks=100):  # noqa: ANN001, ANN202
   all_words = get_word_list()
   possibilities = get_word_list(short=True)
   priors = get_true_wordle_prior()
@@ -633,7 +659,7 @@ def find_smallest_second_guess_buckets(n_top_picks=100):
   return result
 
 
-def get_optimal_second_guess_map(first_guess, n_top_picks=10, regenerate=False):
+def get_optimal_second_guess_map(first_guess, n_top_picks=10, regenerate=False):  # noqa: ANN001, ANN202, FBT002
   all_sgms = load_json(SECOND_GUESS_MAP_FILE)
 
   if first_guess in all_sgms and not regenerate:
@@ -662,7 +688,7 @@ def get_optimal_second_guess_map(first_guess, n_top_picks=10, regenerate=False):
   return sgm
 
 
-def gather_entropy_to_score_data(first_guess="crane", priors=None):
+def gather_entropy_to_score_data(first_guess="crane", priors=None):  # noqa: ANN001, ANN202
   words = get_word_list()
   answers = get_word_list(short=True)
   if priors is None:
@@ -690,27 +716,27 @@ def gather_entropy_to_score_data(first_guess="crane", priors=None):
     for sc, ent in zip(it.count(1), reversed(entropies)):
       ent_score_pairs.append((ent, sc))
 
-  dump_json(ent_score_pairs, ENT_SCORE_PAIRS_FILE)  # type: ignore
+  dump_json(ent_score_pairs, ENT_SCORE_PAIRS_FILE)  # type: ignore  # noqa: PGH003
 
   return ent_score_pairs
 
 
-def simulate_games(  # noqa: PLR0915, PLR0913
-  first_guess=None,
-  priors=None,
-  look_two_ahead=False,
-  optimize_for_uniform_distribution=False,
-  second_guess_map=None,
-  exclude_seen_words=False,
-  test_set=None,
-  shuffle=False,
-  hard_mode=False,
-  purely_maximize_information=False,
-  brute_force_optimize=False,
-  brute_force_depth=10,
-  results_file=None,
-  next_guess_map_file=None,
-  quiet=False,
+def simulate_games(  # noqa: ANN202, C901, PLR0913, PLR0915
+  first_guess=None,  # noqa: ANN001
+  priors=None,  # noqa: ANN001
+  look_two_ahead=False,  # noqa: ANN001, FBT002
+  optimize_for_uniform_distribution=False,  # noqa: ANN001, FBT002
+  second_guess_map=None,  # noqa: ANN001
+  exclude_seen_words=False,  # noqa: ANN001, FBT002
+  test_set=None,  # noqa: ANN001
+  shuffle=False,  # noqa: ANN001, FBT002
+  hard_mode=False,  # noqa: ANN001, FBT002
+  purely_maximize_information=False,  # noqa: ANN001, FBT002
+  brute_force_optimize=False,  # noqa: ANN001, FBT002
+  brute_force_depth=10,  # noqa: ANN001
+  results_file=None,  # noqa: ANN001
+  next_guess_map_file=None,  # noqa: ANN001
+  quiet=False,  # noqa: ANN001, FBT002
 ):
   all_words = get_word_list(short=False)
   short_word_list = get_word_list(short=True)
@@ -720,7 +746,7 @@ def simulate_games(  # noqa: PLR0915, PLR0913
       all_words,
       all_words,
       priors,
-      # **choice_config # TODO(alex): this isn't referenced anywhere, best as I can tell, so no clue what it does (other than crash)
+      # **choice_config # TODO(alex): this isn't referenced anywhere, best as I can tell, so no clue what it does (other than crash)  # noqa: E501
     )
 
   if priors is None:
@@ -738,7 +764,7 @@ def simulate_games(  # noqa: PLR0915, PLR0913
   # and reuse results that are seen multiple times in the sim
   next_guess_map = {}
 
-  def get_next_guess(guesses, patterns, possibilities):
+  def get_next_guess(guesses, patterns, possibilities):  # noqa: ANN001, ANN202
     phash = "".join(str(g) + "".join(map(str, pattern_to_int_list(p))) for g, p in zip(guesses, patterns, strict=False))
     if second_guess_map is not None and len(patterns) == 1:
       next_guess_map[phash] = second_guess_map[patterns[0]]
@@ -831,8 +857,8 @@ def simulate_games(  # noqa: PLR0915, PLR0913
       print(message)
 
   final_result = {
-    "score_distribution": score_dist,  # type: ignore
-    "total_guesses": int(total_guesses),  # type: ignore
+    "score_distribution": score_dist,  # type: ignore  # noqa: PGH003
+    "total_guesses": int(total_guesses),  # type: ignore  # noqa: PGH003
     "average_score": float(scores.mean()),
     "game_results": game_results,
   }
