@@ -3,6 +3,7 @@ name = "Pridel"
 version = "1.0.5"
 description = "Wordle and Primel and other variants on the commandline"
 authors = ["AlexBlandin"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
