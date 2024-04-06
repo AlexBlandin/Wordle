@@ -1,3 +1,0 @@
-language = "python3"
-run = "python3 wordle.py"
-entrypoint = "wordle.py"

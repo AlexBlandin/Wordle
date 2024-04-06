@@ -11,7 +11,7 @@ wordset.
 
 I'll use this for random tests, and naturally it's for me to play with. An
 example is the "Britle" mode of British English (so "colour" etc). Another is the
-`sim-3b1b.py` file, which is there for me to experiment with computing the
+`sim3b1b.py` file, which is there for me to experiment with computing the
 optimal strategies for Britle, mostly as a curiosity at the intersection between
 information theory and linguistics.
 
@@ -21,13 +21,9 @@ going to make a version for normal Wordle or such, because that defeats the
 point of the game, in my opinion.
 
 ## Requirements
+- [`pip install -r requirements.txt`](https://www.python.org/)
+  - [regenerate with `uv pip compile pyproject.toml -o requirements.txt`](https://github.com/astral-sh/uv)
 
-- Python 3.7 or later
-- [`poetry install`](https://python-poetry.org/), which handles:
-  - `wordle.py` uses `colorama` for ensuring terminal output is coloured, such as
-    on Windows.
-    - If it isn't found, the `ModuleNotFoundError` is suppressed and it just
-      carries on assuming your terminal handles ANSI/VT100 colour codes.
-  - `sim-3b1b.py` uses `numpy`, `tqdm`, and `rich` (based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py))
-  	- These are optional and installed with `poetry install --all-extras`
-- `primel.py` has no dependencies
+- If wanting to use `sim3b1b.py` do `pip install -r requirements-3b1b.txt`
+  - based on [3b1b's code](https://github.com/3b1b/videos/blob/master/_2022/wordle/simulations.py)
+  - regenerate with `uv pip compile pyproject.toml --extra 3b1b -o requirements-3b1b.txt`
