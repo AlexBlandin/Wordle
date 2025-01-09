@@ -58,8 +58,8 @@ know = ["?"] * 5
 
 
 def now() -> None:  # noqa: D103
-  print("Contains", *aware)
-  print("Known positions", *know)
+  print("Contains", *aware)  # noqa: T201
+  print("Known positions", *know)  # noqa: T201
 
 
 def stat() -> None:
@@ -77,20 +77,20 @@ def stat() -> None:
       digit[c] += 1
   digit = sorted_dict(digit, reverse=True)
   column = {i: sorted_dict(d, reverse=True) for i, d in column.items()}
-  print(len(ws))
-  print(digit)
-  pp(column, width=120)
+  print(len(ws))  # noqa: T201
+  print(digit)  # noqa: T201
+  pp(column, width=120)  # noqa: T203
 
 
 def guess(ws=ws) -> None:  # noqa: ANN001, D103
   if len(ws) > 10:  # noqa: PLR2004
-    print(*sample(ws, 10))
+    print(*sample(ws, 10))  # noqa: T201
   else:
-    print(*ws)
+    print(*ws)  # noqa: T201
 
 
 def unique(ws=ws, n_letters: int = 5) -> None:  # guess but n letters different  # noqa: ANN001, D103
-  guess(list(filter(lambda p: len(set(str(p))) == n_letters, ws)))  # type: ignore  # noqa: PGH003
+  guess(list(filter(lambda p: len(set(str(p))) == n_letters, ws)))
 
 
 def has(x: int, c: int) -> None:  # you know it's there, but that it's not in this column  # noqa: D103
@@ -107,7 +107,7 @@ def no(*xs: int) -> None:  # noqa: D103
 def at(x: int, c: int) -> None:  # noqa: D103
   if x in aware:
     aware.remove(x)
-  know[c] = x  # type: ignore  # noqa: PGH003
+  know[c] = x
   for d, s in by_column[c].items():
     if d != x:
       ws.difference_update(s)
@@ -117,7 +117,7 @@ def code(number, code) -> None:  # noqa: ANN001, D103
   for i, (n, c) in enumerate(zip(map(int, str(number)), code, strict=False)):
     match c:
       case "n":
-        no(n)  # type: ignore  # noqa: PGH003
+        no(n)
       case "g":
         at(n, i)
       case "y":
@@ -125,4 +125,4 @@ def code(number, code) -> None:  # noqa: ANN001, D103
 
 
 if __name__ == "__main__":
-  print(*sample(FDPs, 10))
+  print(*sample(FDPs, 10))  # noqa: T201

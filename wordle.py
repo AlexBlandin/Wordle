@@ -38,10 +38,10 @@ def wordle(kind: str, words: list[str], valid: set[str], n_words: int = 6) -> No
 
   def display(turn) -> None:  # noqa: ANN001
     system("clear" if platform != "nt" else "cls")  # noqa: S605
-    print("Pridel:", kind)
+    print("Pridel:", kind)  # noqa: T201
     for ts, g, _ in turn:
-      print(ts, g)
-    print()
+      print(ts, g)  # noqa: T201
+    print()  # noqa: T201
 
   turn = [(f"{i + 1}/{n_words}:", "_____", "") for i in range(n_words)]
   for t in range(n_words):
@@ -50,18 +50,18 @@ def wordle(kind: str, words: list[str], valid: set[str], n_words: int = 6) -> No
       display(turn)
       guess = input("> ").upper()
 
-    turn[t] = (f"{t + 1}/{n_words}:", *colour(guess, word))  # type: ignore  # noqa: PGH003
+    turn[t] = (f"{t + 1}/{n_words}:", *colour(guess, word))
     if guess == word:
       display(turn)
       break
   else:
     display(turn)
-    print("Was:", word)
-    print()
+    print("Was:", word)  # noqa: T201
+    print()  # noqa: T201
 
-  print(f"Pridel ({kind}) {day + 1} {t + 1}/{n_words}")  # type: ignore  # noqa: PGH003
+  print(f"Pridel ({kind}) {day + 1} {t + 1}/{n_words}")  # noqa: T201
   for _, _, cs in turn:
-    print(cs)
+    print(cs)  # noqa: T201
 
 
 def main() -> None:
@@ -78,7 +78,7 @@ def main() -> None:
     "nordle": set("nyt nordle"),
   }
   games = {k: g.difference(*[g_ for g_ in games.values() if g_ != g]) for k, g in games.items()}
-  print("Which mode would you like to play?", *games)
+  print("Which mode would you like to play?", *games)  # noqa: T201
   # we test whether it contains any of the unique letters from each option
   # which should mean it tolerates some degree of error
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     init()
   if False:  # test colouring is correct (it is)
     for w in "abide erase steal crepe ester".split():
-      print(*colour("speed", w), "when", w)
-  print(main.__doc__)
-  print()
+      print(*colour("speed", w), "when", w)  # noqa: T201
+  print(main.__doc__)  # noqa: T201
+  print()  # noqa: T201
   main()

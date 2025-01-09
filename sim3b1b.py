@@ -422,7 +422,7 @@ def get_expected_scores(  # noqa: ANN202
   # If this guess is the true answer, score is 1. Otherwise, it's 1 plus
   # the expected number of guesses it will take after getting the corresponding
   # amount of information.
-  expected_scores = probs + (1 - probs) * (1 + entropy_to_expected_score(H0 - H1s))  # type: ignore  # noqa: PGH003
+  expected_scores = probs + (1 - probs) * (1 + entropy_to_expected_score(H0 - H1s))
 
   if not look_two_ahead:
     return expected_scores
@@ -435,14 +435,14 @@ def get_expected_scores(  # noqa: ANN202
   expected_scores += 1  # Push up the rest
   for i in tqdm(sorted_indices[:n_top_candidates_for_two_step], leave=False):
     guess = allowed_words[i]
-    H1 = H1s[i]  # type: ignore  # noqa: N806, PGH003
+    H1 = H1s[i]  # noqa: N806
     dist = get_pattern_distributions([guess], possible_words, weights)[0]
     buckets = get_word_buckets(guess, possible_words)
     second_guesses = [optimal_guess(allowed_second_guesses, bucket, priors, look_two_ahead=False) for bucket in buckets]
     H2s = [  # noqa: N806
       get_entropies([guess2], bucket, get_weights(bucket, priors))[0]
       for guess2, bucket in zip(second_guesses, buckets, strict=False)
-    ]  # type: ignore  # noqa: PGH003
+    ]
 
     prob = word_to_weight.get(guess, 0)
     expected_scores[i] = sum(
@@ -581,7 +581,7 @@ def find_top_scorers(n_top_candidates=100, hard_mode=False, quiet=True):  # noqa
 
   file = CWD / "data" / GAME / f"best_scores{'_hard_mode' if hard_mode else ''}.json"
 
-  dump_json(result, file)  # type: ignore  # noqa: PGH003
+  dump_json(result, file)
 
   return result
 
@@ -594,10 +594,10 @@ def find_best_two_step_entropy():  # noqa: ANN202
   ents = get_entropies(words, answers, get_weights(answers, priors))
   sorted_indices = np.argsort(ents)
   top_candidates = np.array(words)[sorted_indices[:-250:-1]]
-  top_ents = ents[sorted_indices[:-250:-1]]  # type: ignore  # noqa: PGH003
+  top_ents = ents[sorted_indices[:-250:-1]]
 
   ent_file = CWD / "data" / GAME / "best_entropies.json"
-  dump_json([[tc, te] for tc, te in zip(top_candidates, top_ents, strict=False)], ent_file)  # type: ignore  # noqa: PGH003
+  dump_json([[tc, te] for tc, te in zip(top_candidates, top_ents, strict=False)], ent_file)
 
   ents2 = get_average_second_step_entropies(
     top_candidates,
@@ -612,7 +612,7 @@ def find_best_two_step_entropy():  # noqa: ANN202
   double_ents = [[top_candidates[i], top_ents[i], ents2[i]] for i in sorted_indices2[::-1]]
 
   ent2_file = CWD / "data" / GAME / "best_double_entropies.json"
-  dump_json(double_ents, ent2_file)  # type: ignore  # noqa: PGH003
+  dump_json(double_ents, ent2_file)
 
   return double_ents
 
@@ -716,7 +716,7 @@ def gather_entropy_to_score_data(first_guess="crane", priors=None):  # noqa: ANN
     for sc, ent in zip(it.count(1), reversed(entropies)):
       ent_score_pairs.append((ent, sc))
 
-  dump_json(ent_score_pairs, ENT_SCORE_PAIRS_FILE)  # type: ignore  # noqa: PGH003
+  dump_json(ent_score_pairs, ENT_SCORE_PAIRS_FILE)
 
   return ent_score_pairs
 
@@ -851,14 +851,14 @@ def simulate_games(  # noqa: ANN202, C901, PLR0913, PLR0915
       if answer is not test_set[0]:
         # Move cursor back up to the top of the message
         n = len(message.split("\n")) + 1
-        print(("\033[F\033[K") * n)
+        print(("\033[F\033[K") * n)  # noqa: T201
       else:
-        print("\r\033[K\n")
-      print(message)
+        print("\r\033[K\n")  # noqa: T201
+      print(message)  # noqa: T201
 
   final_result = {
-    "score_distribution": score_dist,  # type: ignore  # noqa: PGH003
-    "total_guesses": int(total_guesses),  # type: ignore  # noqa: PGH003
+    "score_distribution": score_dist,
+    "total_guesses": int(total_guesses),
     "average_score": float(scores.mean()),
     "game_results": game_results,
   }
@@ -874,7 +874,7 @@ def simulate_games(  # noqa: ANN202, C901, PLR0913, PLR0915
 
 if __name__ == "__main__":
   first_guess = None  # "salet"
-  print(GAME)
+  print(GAME)  # noqa: T201
   results, decision_map = simulate_games(
     first_guess=first_guess,
     priors=get_true_wordle_prior(),

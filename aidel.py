@@ -41,8 +41,8 @@ know = ["?"] * 5
 
 
 def now() -> None:  # noqa: D103
-  print("Contains", *aware)
-  print("Known positions", *know)
+  print("Contains", *aware)  # noqa: T201
+  print("Known positions", *know)  # noqa: T201
 
 
 def stat() -> None:
@@ -66,21 +66,21 @@ def stat() -> None:
       letter[c] += 1
   letter = sorted_dict(letter, reverse=True)
   column = {i: sorted_dict(d, reverse=True) for i, d in column.items()}
-  print(len(ws))
-  print(letter)
+  print(len(ws))  # noqa: T201
+  print(letter)  # noqa: T201
   for col, letters in column.items():
-    print(f"{col}: {letters}")
+    print(f"{col}: {letters}")  # noqa: T201
 
 
 def guess(ws: set = ws, truncate_at: int = 10) -> None:  # noqa: D103
   if len(ws) > truncate_at:
-    print(*sample(sorted(ws), 10))
+    print(*sample(sorted(ws), 10))  # noqa: T201
   else:
-    print(*ws)
+    print(*ws)  # noqa: T201
 
 
 def unique(ws=ws, n_letters: int = 5) -> None:  # guess but n letters different  # noqa: ANN001, D103
-  guess(list(filter(lambda p: len(set(p)) == n_letters, ws)))  # type: ignore  # noqa: PGH003
+  guess(list(filter(lambda p: len(set(p)) == n_letters, ws)))
 
 
 def has(ltr: str, col: int) -> None:  # you know it's there, but that it's not in this column  # noqa: D103
@@ -91,7 +91,7 @@ def has(ltr: str, col: int) -> None:  # you know it's there, but that it's not i
 
 def no(*letters: list[str]) -> None:  # noqa: D103
   for ltr in letters:
-    ws.difference_update(by_letter[ltr])  # type: ignore  # noqa: PGH003
+    ws.difference_update(by_letter[ltr])
 
 
 def at(ltr: str, col: int) -> None:  # noqa: D103
@@ -112,7 +112,7 @@ def code(*pairs) -> None:  # noqa: ANN002, D103
       elif colour == "y":
         has(letter, col)
       else:
-        no(letter)  # type: ignore  # noqa: PGH003
+        no(letter)
 
 
 if __name__ == "__main__":
