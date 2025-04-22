@@ -3,7 +3,7 @@ name = "Wordle"
 description = "Wordle from the terminle... I mean terminal."
 version = "1.0.6"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "AlexBlandin" }, { name = "3b1b" }] # 3b1b is Grant Sanderson
 dependencies = ["colorama; platform_system == 'Windows'"]
@@ -19,7 +19,7 @@ Source = "https://github.com/alexblandin/Wordle"
 
 [tool.ruff]
 indent-width = 2
-target-version = "py310"
+target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
