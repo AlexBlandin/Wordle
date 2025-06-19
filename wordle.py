@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     init()
   if False:  # test colouring is correct (it is)
-    for w in "abide erase steal crepe ester".split():
+    for w in ["abide", "erase", "steal", "crepe", "ester"]:
       print(*colour("speed", w), "when", w)  # noqa: T201
   print(main.__doc__)  # noqa: T201
   print()  # noqa: T201
