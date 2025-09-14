@@ -10,7 +10,7 @@ dependencies = ["colorama; platform_system == 'Windows'"]
 
 [project.optional-dependencies]
 3b1b = ["tqdm", "numpy", "rich", "scipy"]
-dev = ["ruff", "pdbp", "basedmypy", "basedpyright"]
+dev = ["ruff"]
 
 [project.urls]
 Documentation = "https://github.com/alexblandin/Wordle#readme"
